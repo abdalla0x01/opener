@@ -1,0 +1,72 @@
+#!/usr/bin/env python
+import socket,time,sys,threading,requests,os
+from queue import Queue
+q = Queue()
+try:
+	thr=sys.argv[2]
+	file=open(sys.argv[1],'r')
+except:
+	print ('Error ...: \n\tHelp : python2 host.txt Thread\n\tExample : python2 hosts.txt 200')
+	sys.exit()
+x=0
+for k in file:
+	x=x+1
+file.close()
+file=open(sys.argv[1],'r')
+g=0
+try:
+	os.chdir('out')
+except:
+	os.mkdir('out')
+	os.chdir('out')
+def scan(item):
+	global file
+	try:
+		for host in file:
+			try:
+				r=requests.get(host.strip(),timeout=1)
+				print ('\033[92m[+] \033[0m'+host.strip()+' \033[0m[\033[93m'+str(r.status_code)+'\033[0m]')
+				os.mkdir(host.replace('http://','').strip())
+                                with open('index','a') as f:
+                                        f.write('[+] Status : '+str(r.status_code)+'\n[+] After : '+host.strip()+'\n[+] Before : '+str(r.url)+'\n*****************')
+                                        for o,p in r.headers.items():
+                                                f.write('\n'+str(o)+': '+str(p))
+                                        f.write('\n*******************\n\n'+str(r.content))
+				os.chdir(host.replace('http://','').strip())
+				with open('index','a') as f:
+					f.write('[+] Status : '+str(r.status_code)+'\n[+] After : '+host.strip()+'\n[+] Before : '+str(r.url)+'\n*****************')
+					for o,p in r.headers.items():
+						f.write('\n'+str(o)+': '+str(p))
+					f.write('\n*******************\n\n'+str(r.content))
+					os.chdir('..')
+			except:
+				pass
+	except:
+		pass
+def start():
+	global x
+	try:
+		for i in range(x):
+		        item = q.get()
+		        scan(item)
+		        q.task_done()
+	except:
+		pass
+if __name__ == '__main__':
+	try:
+		for c in range(x):
+			for i in range(int(thr)):
+				t = threading.Thread(target=start)
+				t.daemon = True  # if thread is exist, it dies
+				t.start()
+			#tasking
+			item = 0
+			for j in range(x):
+				if (item>1800): # for no memory crash
+					item=0
+					time.sleep(.1)
+				item = item + 1
+				q.put(item)
+			q.join()
+	except:
+		pass
