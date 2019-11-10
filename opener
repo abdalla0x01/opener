@@ -14,11 +14,6 @@ for k in file:
 file.close()
 file=open(sys.argv[1],'r')
 g=0
-try:
-	os.chdir('out')
-except:
-	os.mkdir('out')
-	os.chdir('out')
 def scan(item):
 	global file
 	try:
@@ -26,19 +21,8 @@ def scan(item):
 			try:
 				r=requests.get(host.strip(),timeout=1)
 				print ('\033[92m[+] \033[0m'+host.strip()+' \033[0m[\033[93m'+str(r.status_code)+'\033[0m]')
-				os.mkdir(host.replace('http://','').strip())
-                                with open('index','a') as f:
-                                        f.write('[+] Status : '+str(r.status_code)+'\n[+] After : '+host.strip()+'\n[+] Before : '+str(r.url)+'\n*****************')
-                                        for o,p in r.headers.items():
-                                                f.write('\n'+str(o)+': '+str(p))
-                                        f.write('\n*******************\n\n'+str(r.content))
-				os.chdir(host.replace('http://','').strip())
-				with open('index','a') as f:
-					f.write('[+] Status : '+str(r.status_code)+'\n[+] After : '+host.strip()+'\n[+] Before : '+str(r.url)+'\n*****************')
-					for o,p in r.headers.items():
-						f.write('\n'+str(o)+': '+str(p))
-					f.write('\n*******************\n\n'+str(r.content))
-					os.chdir('..')
+				res=open(sys.argv[3],'a')
+				res.write('\n[+] {} ({})'.format(host.strip(),str(r.status_code)))
 			except:
 				pass
 	except:
