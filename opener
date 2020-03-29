@@ -82,7 +82,7 @@ if opts.method:
 else:
 	method = 'get'
 requests.packages.urllib3.disable_warnings()
-q = Queue()
+q = Queue(maxsize=0)
 logging.basicConfig(level=logging.DEBUG,format='[%(asctime)s] %(message)s',datefmt='%H:%M:%S')
 if path.exists('out'):
 	pass
