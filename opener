@@ -1,56 +1,125 @@
-#!/usr/bin/env python
-import socket,time,sys,threading,requests,os
+#!/usr/bin/env python3
+# Coded by : khaled nassar @knassar702
+# Email : knassar702@gmail.com
+from requests_toolbelt.utils import dump
 from queue import Queue
-q = Queue()
-try:
-	thr=sys.argv[2]
-	file=open(sys.argv[1],'r')
-except:
-	print ('Error ...: \n\tHelp : python2 host.txt Thread\n\tExample : python2 hosts.txt 200')
-	sys.exit()
-x=0
-for k in file:
-	x=x+1
-file.close()
-file=open(sys.argv[1],'r')
-g=0
-def scan(item):
-	global file
+from os import mkdir,path,chdir
+from threading import Thread
+from sys import stdin
+from optparse import OptionParser
+import logging,urllib3,requests,random
+optp = OptionParser(add_help_option=False)
+optp.add_option("--timeout",dest='timeout',type='int')
+optp.add_option("--threads",dest='thr',type='int')
+optp.add_option("-p","--path",dest='path')
+optp.add_option("-m","--method",dest='method')
+optp.add_option("--header",dest='headers')
+optp.add_option("-r","--allow_redirects",dest='redirect',action='store_true')
+optp.add_option("-h","--help",dest='help',action='store_true')
+helper = ("""                         
+ ___             ___     
+|   |___ ___ ___|_  |___ 
+| | | . | -_|   |_  |  _|
+|___|  _|___|_|_|___|_|  
+    |_|                  
+
+# Coded By : Khaled Nassar @knassar702
+
+Options:
+	-h,--helper            | Show help message and exit
+	-r,--allow-redirect    | Allow the main redirect
+	-p,--path              | The Path (default /)
+	-m,--method            | Http method (default GET)
+    --header               | Send a custom HTTP header
+	--threads              | Max number of concurrent HTTP(s) requests (default 10)
+	--timeout              | Seconds to wait before timeout connection (default 3)
+Examples:
+	$ cat live_domains.txt | python3 opener 
+	$ cat live_domains.txt | python3 opener --threads=100 -p /robots.txt -m get
+	$ cat live_domains.txt | python3 opener --threads=100 -p /login -m post
+	""")
+def uagent():
+	agents=[
+	'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.0) Opera 12.14',
+	'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:26.0) Gecko/20100101 Firefox/26.0',
+	'Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.1.3) Gecko/20090913 Firefox/3.5.3',
+	'Mozilla/5.0 (Windows; U; Windows NT 6.1; en; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3 (.NET CLR 3.5.30729)',
+	'Mozilla/5.0 (Windows NT 6.2) AppleWebKit/535.7 (KHTML, like Gecko) Comodo_Dragon/16.1.1.0 Chrome/16.0.912.63 Safari/535.7',
+	'Mozilla/5.0 (Windows; U; Windows NT 5.2; en-US; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3 (.NET CLR 3.5.30729)',
+	'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.1) Gecko/20090718 Firefox/3.5.1',
+	'Opera/8.01 (Windows NT 5.1; U; pl)',
+	'Opera/8.50 (Windows NT 5.0; U; en)',
+	'Opera/9.00 (Macintosh; PPC Mac OS X; U; es)',
+	'Opera/9.24 (X11; Linux i686; U; de)',
+	'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0; en) Opera 8.53'
+	]
+	return random.choice(agents).encode('utf-8')
+opts, args = optp.parse_args()
+if opts.help:
+	print(helper)
+	exit()
+if opts.thr:
+	thr = opts.thr
+else:
+	thr = 10
+if opts.timeout:
+	timeout = opts.timeout
+else:
+	timeout = 3
+if opts.redirect:
+	redirect = True
+else:
+	redirect = False
+if opts.path:
+	the_path = opts.path
+else:
+	the_path = ''
+if opts.method:
+	if opts.method.lower() in ['get','post']:
+		method = opts.method
+	else:
+		print('Method Not Supported')
+		exit()
+else:
+	method = 'get'
+requests.packages.urllib3.disable_warnings()
+q = Queue(maxsize=0)
+logging.basicConfig(level=logging.DEBUG,format='[%(asctime)s] %(message)s',datefmt='%H:%M:%S')
+if path.exists('out'):
+	pass
+else:
+	mkdir('out')
+chdir('out')
+def opener(host,timeout=3,redirect=False,method='get',the_path='',headers=None):
 	try:
-		for host in file:
-			try:
-				r=requests.get(host.strip(),timeout=1)
-				print ('\033[92m[+] \033[0m'+host.strip()+' \033[0m[\033[93m'+str(r.status_code)+'\033[0m]')
-				res=open(sys.argv[3],'a')
-				res.write('\n[+] {} ({})'.format(host.strip(),str(r.status_code)))
-			except:
+		if method.lower() == 'get':
+			r = requests.get(f'{host.rstrip()}{the_path}',timeout=timeout,verify=False,headers=headers,allow_redirects=redirect)
+		elif method.lower() == 'post':
+			r = requests.post(f'{host.rstrip()}{the_path}',timeout=timeout,verify=False,allow_redirects=redirect,headers=headers)
+		host_file = f'{host.rstrip().replace("https://","").replace("http://","")}'
+		if r.status_code:
+			if path.exists(host_file.encode('utf-8')):
 				pass
+			else:
+				mkdir(host_file)
+			chdir(f'{host.rstrip().replace("https://","").replace("http://","")}')
+			f = open('index','a')
+			data = dump.dump_all(r)
+			f.write(data.decode('utf-8'))
+			logging.info(f'{host.rstrip().replace("https://","").replace("http://","")} > out/{host.rstrip().replace("https://","").replace("http://","")}/index')
+			chdir('../')
 	except:
-		pass
-def start():
-	global x
-	try:
-		for i in range(x):
-		        item = q.get()
-		        scan(item)
-		        q.task_done()
-	except:
-		pass
+		print(f'{host.rstrip().replace("https://","").replace("http://","")} | Field')
+def threader(q):
+	host = q.get()
+	opener(host,timeout=timeout,redirect=redirect,the_path=the_path,method=method,headers={'User-agent':uagent()})
+	q.task_done()
+
 if __name__ == '__main__':
-	try:
-		for c in range(x):
-			for i in range(int(thr)):
-				t = threading.Thread(target=start)
-				t.daemon = True  # if thread is exist, it dies
-				t.start()
-			#tasking
-			item = 0
-			for j in range(x):
-				if (item>1800): # for no memory crash
-					item=0
-					time.sleep(.1)
-				item = item + 1
-				q.put(item)
-			q.join()
-	except:
-		pass
+	for i in range(thr):
+		p1 = Thread(target=threader,args=(q,))
+		p1.daemon = True
+		p1.start()
+	for host in stdin:
+		q.put(host.rstrip())
+	q.join()
