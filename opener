@@ -30,7 +30,6 @@ Options:
 	-r,--allow-redirect    | Allow the main redirect
 	-p,--path              | The Path (default /)
 	-m,--method            | Http method (default GET)
-    --header               | Send a custom HTTP header
 	--threads              | Max number of concurrent HTTP(s) requests (default 10)
 	--timeout              | Seconds to wait before timeout connection (default 3)
 Examples:
@@ -83,7 +82,7 @@ if opts.method:
 else:
 	method = 'get'
 requests.packages.urllib3.disable_warnings()
-q = Queue(maxsize=0)
+q = Queue()
 logging.basicConfig(level=logging.DEBUG,format='[%(asctime)s] %(message)s',datefmt='%H:%M:%S')
 if path.exists('out'):
 	pass
@@ -109,17 +108,19 @@ def opener(host,timeout=3,redirect=False,method='get',the_path='',headers=None):
 			logging.info(f'{host.rstrip().replace("https://","").replace("http://","")} > out/{host.rstrip().replace("https://","").replace("http://","")}/index')
 			chdir('../')
 	except:
-		print(f'{host.rstrip().replace("https://","").replace("http://","")} | Field')
-def threader(q):
-	host = q.get()
-	opener(host,timeout=timeout,redirect=redirect,the_path=the_path,method=method,headers={'User-agent':uagent()})
-	q.task_done()
+		pass
+def threader():
+	while True:
+		host = q.get()
+		opener(host,timeout=timeout,redirect=redirect,the_path=the_path,method=method,headers={'User-agent':uagent()})
+		q.task_done()
 
 if __name__ == '__main__':
 	for i in range(thr):
-		p1 = Thread(target=threader,args=(q,))
-		p1.daemon = True
+		p1 = Thread(target=threader)
+		p1.daemon=True
 		p1.start()
 	for host in stdin:
 		q.put(host.rstrip())
 	q.join()
+	exit()
