@@ -13,7 +13,6 @@ optp.add_option("--timeout",dest='timeout',type='int')
 optp.add_option("--threads",dest='thr',type='int')
 optp.add_option("-p","--path",dest='path')
 optp.add_option("-m","--method",dest='method')
-optp.add_option("--header",dest='headers')
 optp.add_option("-r","--allow_redirects",dest='redirect',action='store_true')
 optp.add_option("-h","--help",dest='help',action='store_true')
 helper = ("""                         
