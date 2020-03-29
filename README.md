@@ -21,11 +21,11 @@ Options:
 	-r,--allow-redirect    | Allow the main redirect
 	-p,--path              | The Path (default /)
 	-m,--method            | Http method (default GET)
-    --header               | Send a custom HTTP header
 	--threads              | Max number of concurrent HTTP(s) requests (default 10)
 	--timeout              | Seconds to wait before timeout connection (default 3)
 Examples:
 	$ cat live_domains.txt | python3 opener 
 	$ cat live_domains.txt | python3 opener --threads=100 -p /robots.txt -m get
 	$ cat live_domains.txt | python3 opener --threads=100 -p /login -m post
+	
 ```
