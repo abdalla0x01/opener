@@ -17,7 +17,7 @@
 # Coded By : Khaled Nassar @knassar702
 
 Options:
-	-h,--helper            | Show help message and exit
+	-h,--help              | Show help message and exit
 	-r,--allow-redirect    | Allow the main redirect
 	-p,--path              | The Path (default /)
 	-m,--method            | Http method (default GET)
